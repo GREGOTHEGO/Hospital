@@ -97,15 +97,15 @@ def standardize(X):
     X[X.select_dtypes(include=['float64']).columns] = X_numeric
     X = scaler.fit_transform(X)
     dump(scaler, open('scaler.pkl', 'wb'))
-    return X, scaler
+    return X
 
 def train_model(X, y):
     # Split data into training and validation
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=.3, random_state=42)
-    X_train, scaler = standardize(X_train)
-    X_val = scaler.transform(X_val)
-    X_test = scaler.transform(X_test)
+    #X_train, scaler = standardize(X_train)
+    #X_val = scaler.transform(X_val)
+    #X_test = scaler.transform(X_test)
     # Define the neural network model
     model = keras.Sequential([
         layers.Input(shape=(X_train.shape[1],)),  # Input layer
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     df = pd.read_csv(data_path)
     cleaned_data = data_preprocessing(df)
     y, X = split_feature_label(cleaned_data)
-    #X = standardize(X)
-    #X = np.asarray(X).astype('float32')
+    X = standardize(X)
+    X = np.asarray(X).astype('float32')
     train_model(X, y)
     
