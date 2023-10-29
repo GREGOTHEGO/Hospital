@@ -107,13 +107,13 @@ class Solution:
         
         #print(df)
         df = df.drop(columns = ['sex','diabetes','cancer'])
-        #df.to_csv('greg.csv')
+        df.to_csv('greg.csv')
         df.fillna(0, inplace=True)
         #print(df.shape[1])
-        rf = load(open('rf.pkl', 'rb'))
-        #df = scale.transform(df)
-        #df = np.asarray(df).astype('float32')
-        prediction = rf.predict(df)
+        scale = load(open('scaler.pkl', 'rb'))
+        df = scale.transform(df)
+        df = np.asarray(df).astype('float32')
+        prediction = self.model.predict(df)
         print(prediction[0][0])
         return float(prediction[0][0])
 

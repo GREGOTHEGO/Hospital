@@ -9,10 +9,6 @@ from tensorflow.keras import layers
 from sklearn.decomposition import PCA
 from tensorflow.keras import regularizers
 from pickle import dump
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay
-from sklearn.model_selection import RandomizedSearchCV, train_test_split
-from scipy.stats import randint
 
 def data_preprocessing(df):
     
@@ -106,50 +102,42 @@ def standardize(X):
 def train_model(X, y):
     # Split data into training and validation
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-    #X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=.3, random_state=42)
-    #X_train, scaler = standardize(X_train)
-    #X_val = scaler.transform(X_val)
-    #X_test = scaler.transform(X_test)
+    X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=.3, random_state=42)
+    X_train, scaler = standardize(X_train)
+    X_val = scaler.transform(X_val)
+    X_test = scaler.transform(X_test)
     # Define the neural network model
-    # model = keras.Sequential([
-    #     layers.Input(shape=(X_train.shape[1],)),  # Input layer
-    #     layers.Dense(47, activation='relu',kernel_regularizer=keras.regularizers.L1L2(l1=1e-3,l2=1e-2),bias_regularizer=regularizers.L2(1e-2),activity_regularizer=regularizers.L2(1e-3)),     # Hidden layer with 128 neurons and ReLU activation
-    #     layers.Dense(47, activation='selu',kernel_regularizer=keras.regularizers.L1L2(l1=1e-3,l2=1e-2),bias_regularizer=regularizers.L2(1e-2),activity_regularizer=regularizers.L2(1e-3)),      # Another hidden layer with 64 neurons and ReLU activation 
-    #     layers.Dense(1, activation='sigmoid')     # Output layer with sigmoid activation for binary classification
-    # ])
-    param_dist = {'n_estimators': randint(50,500),'max_depth': randint(1,20)}
-    rf = RandomForestClassifier()
-    rand_search = RandomizedSearchCV(rf, param_distributions = param_dist, n_iter=5, cv=5)
-    rand_search.fit(X_train, y_train)
-    # Compile the model
-    #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    best_rf = rand_search.best_estimator_
+    model = keras.Sequential([
+        layers.Input(shape=(X_train.shape[1],)),  # Input layer
+        layers.Dense(47, activation='relu',kernel_regularizer=keras.regularizers.L1L2(l1=1e-3,l2=1e-2),bias_regularizer=regularizers.L2(1e-2),activity_regularizer=regularizers.L2(1e-3)),     # Hidden layer with 128 neurons and ReLU activation
+        layers.Dense(47, activation='selu',kernel_regularizer=keras.regularizers.L1L2(l1=1e-3,l2=1e-2),bias_regularizer=regularizers.L2(1e-2),activity_regularizer=regularizers.L2(1e-3)),      # Another hidden layer with 64 neurons and ReLU activation 
+        layers.Dense(1, activation='sigmoid')     # Output layer with sigmoid activation for binary classification
+    ])
 
-    # Print the best hyperparameters
-    print('Best hyperparameters:',  rand_search.best_params_)
-    # Train the model 'binary_crossentropy'
-    #history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_val, y_val))
-    y_pred = best_rf.predict(X_val)
-    dump(best_rf, open('rf.pkl', 'wb'))
-    # Evaluate the model on the test set
-    #test_loss, test_accuracy = model.evaluate(X_test, y_test)
-    accuracy = accuracy_score(y_val, y_pred)
-    print("Accuracy:", accuracy)
-    #model.save('example.h5')
+    # Compile the model
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     
-    #print(f'Test accuracy: {test_accuracy}')
+    # Train the model 'binary_crossentropy'
+    history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_val, y_val))
+
+    # Evaluate the model on the test set
+    test_loss, test_accuracy = model.evaluate(X_test, y_test)
+    
+    model.save('example.h5')
+    
+    print(f'Test accuracy: {test_accuracy}')
 
     # Optionally, you can plot training history to visualize model performance
-    # import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt
 
-    # plt.plot(history.history['accuracy'], label='accuracy')
-    # plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
-    # plt.xlabel('Epoch')
-    # plt.ylabel('Accuracy')
-    # plt.ylim([0, 1])
-    # plt.legend(loc='lower right')
-    # plt.show()
-    # plt.savefig('greg')
+    plt.plot(history.history['accuracy'], label='accuracy')
+    plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.ylim([0, 1])
+    plt.legend(loc='lower right')
+    plt.show()
+    plt.savefig('greg')
 
 
 if __name__ == "__main__":
